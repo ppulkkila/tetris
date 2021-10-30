@@ -8,6 +8,7 @@ import Block from "./Block";
 import Part from "./Part";
 
 export const PlayArea = ({ onGameOver }: { onGameOver: () => void }) => {
+  const [difficulty, setDifficulty] = useState<number>(300);
   const [blocks, setBlocks] = useState<IBlock[]>([]);
   const [activePart, setActivePart] = useState<IPart | undefined>();
 
@@ -40,14 +41,17 @@ export const PlayArea = ({ onGameOver }: { onGameOver: () => void }) => {
             ]);
           }
         } else {
-          const canMoveZ =
+          const canMoveX =
             coordinates.every((p) => p.x + x >= 0) &&
             coordinates.every((p) => p.x + x < Constants.Width);
+          const hitsAnotherBlocks = coordinates.some((c) =>
+            blocks.some((b) => b.y === c.y + y && b.x === c.x + x)
+          );
 
           // Otherwise move
           setActivePart({
             ...activePart,
-            x: activePart.x + (canMoveZ ? x : 0),
+            x: activePart.x + (canMoveX && !hitsAnotherBlocks ? x : 0),
             y: activePart.y + y,
           });
         }
@@ -99,18 +103,20 @@ export const PlayArea = ({ onGameOver }: { onGameOver: () => void }) => {
       movePart(0, 1);
     } else {
       createPart();
+      setDifficulty(difficulty * 0.9);
     }
 
     checkFullRows();
-  }, [movePart, createPart, checkFullRows]);
+  }, [movePart, createPart, checkFullRows, difficulty]);
 
   useEffect(() => {
-    const timer = setInterval(onGameTimer, 100);
+    const timer = setInterval(onGameTimer, difficulty);
     return () => clearInterval(timer);
-  }, [onGameTimer]);
+  }, [onGameTimer, difficulty]);
 
   return (
     <div className="flex flex-col w-full h-full items-center">
+      <div>Info: {difficulty}</div>
       <div
         className="relative border border-green-600 overflow-hidden"
         style={areaStyle}
