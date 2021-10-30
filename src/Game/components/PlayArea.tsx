@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { cloneDeep } from "lodash";
 
-import { Constants, IBlock, IPart } from "../types";
+import { Colors, Constants, IBlock, IPart } from "../types";
 import TetrisParts from "../parts";
 import useKeyboard from "../hooks/useKeyboard";
 import Block from "./Block";
@@ -34,11 +34,15 @@ export const PlayArea = ({ onGameOver }: { onGameOver: () => void }) => {
           if (activePart.y <= 0) {
             onGameOver();
           } else {
-            setActivePart(undefined);
             setBlocks((blocks) => [
               ...blocks,
-              ...coordinates.map((c) => ({ x: c.x, y: c.y })),
+              ...coordinates.map((c) => ({
+                x: c.x,
+                y: c.y,
+                color: activePart.color,
+              })),
             ]);
+            setActivePart(undefined);
           }
         } else {
           const canMoveX =
@@ -73,6 +77,7 @@ export const PlayArea = ({ onGameOver }: { onGameOver: () => void }) => {
   useKeyboard(movePart, onRotate);
 
   const createPart = useCallback(() => {
+    const colorIndex = Math.floor(Math.random() * Colors.length);
     const idx = Math.floor(Math.random() * TetrisParts.length);
     const part = TetrisParts[idx];
 
@@ -80,6 +85,7 @@ export const PlayArea = ({ onGameOver }: { onGameOver: () => void }) => {
       x: Math.round(Constants.Width / 2),
       y: -Constants.PartMaxSize,
       blocks: cloneDeep(part),
+      color: Colors[colorIndex],
     });
   }, []);
 
@@ -90,9 +96,14 @@ export const PlayArea = ({ onGameOver }: { onGameOver: () => void }) => {
         // Full row
         const newBlocks = blocks
           .filter((p) => p.y !== idx)
-          .map((p) => ({ x: p.x, y: p.y < idx ? p.y + 1 : p.y }));
+          .map((p) => ({
+            x: p.x,
+            y: p.y < idx ? p.y + 1 : p.y,
+            color: p.color,
+          }));
 
         setBlocks(newBlocks);
+        setDifficulty(Math.round(difficulty * 0.98));
         break;
       }
     }
@@ -103,7 +114,6 @@ export const PlayArea = ({ onGameOver }: { onGameOver: () => void }) => {
       movePart(0, 1);
     } else {
       createPart();
-      setDifficulty(difficulty * 0.9);
     }
 
     checkFullRows();

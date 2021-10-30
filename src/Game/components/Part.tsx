@@ -10,7 +10,10 @@ export const Part = ({ part }: { part: IPart }) => {
       {part.blocks.map((row, y) =>
         row.map((col, x) =>
           col ? (
-            <Block key={i++} block={{ x: part.x + x, y: part.y + y }} />
+            <Block
+              key={i++}
+              block={{ x: part.x + x, y: part.y + y, color: part.color }}
+            />
           ) : null
         )
       )}
